@@ -1,0 +1,33 @@
+{
+  "name": "bomberCollab",
+  "version": "1.0.0",
+  "description": "BomberMine like",
+  "main": "socketio-reflect.js",
+  "dependencies": {
+    "connect": "^3.3.3",
+    "serve-static": "^1.7.1",
+    "socket.io": "^1.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NPi2Loup/bomberCollab.git"
+  },
+  "keywords": [
+    "Bombermine",
+    "WebSocket",
+    "Socket.io",
+    "HTML5",
+    "Processing.js",
+    "Node.js"
+  ],
+  "author": "Npi2Loup",
+  "license": "Affero GPL v3",
+  "bugs": {
+    "url": "https://github.com/NPi2Loup/bomberCollab/issues"
+  },
+  "homepage": "https://github.com/NPi2Loup/bomberCollab"
+}
