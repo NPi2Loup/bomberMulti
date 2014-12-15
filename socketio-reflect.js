@@ -129,15 +129,29 @@ function getConnectStats(socket) {
 }
 function getIp(socket) {
 	var remoteHeaderIp = socket.handshake.headers['x-forwarded-for'];
-	var remoteIp = remoteHeaderIp&&remoteHeaderIp!=undefined?remoteHeaderIp:socket.request.connection.remoteAddress;
+	var remoteIp = remoteHeaderIp;
+	if(remoteIp || remoteIp == undefined) {
+		//remoteIp = socket.request.connection.remoteAddress;
+		remoteIp = socket.client.conn.remoteAddress;
+		
+	}
 	//console.log("header:"+remoteHeaderIp+", ip:"+socket.request.connection.remoteAddress+" => "+remoteIp);
 	return remoteIp;
+}
+
+function getPort(socket) {
+	var remoteHeaderPort = socket.handshake.headers['x-forwarded-port'];
+	var remotePort = remoteHeaderPort;
+	if(remotePort || remotePort == undefined) {
+		remotePort = socket.request.connection.remotePort;
+	}
+	return remotePort;
 }
 
 function prefixLog(socket) {
  	var remoteHeaderPort = socket.handshake.headers['x-forwarded-port'];
 	var remoteIp = getIp(socket);
-	var remotePort = remoteHeaderPort&&remoteHeaderPort!=undefined?remoteHeaderPort:socket.request.connection.remotePort;
+	var remotePort = getPort(socket);
 	return dateFormat (new Date (), "%Y-%m-%d %H:%M:%S ", false)+ "["+remoteIp + ":" +remotePort+"] "
 }
 
