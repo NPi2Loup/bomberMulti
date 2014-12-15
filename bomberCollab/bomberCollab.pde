@@ -2,6 +2,7 @@
 // - gestion d'un timeout/disconnect pour les joueurs offline : Ok
 // - gestion des scores : Ok
 // - chat : Ok
+// - ConstractElevee : C
 
 String EVENT_GAME_INFO = "GAME";
 String EVENT_PLAYER_INFO = "PLAYER";
@@ -18,6 +19,7 @@ int DISCONNECT_TIMEOUT = 60 * FRAME_RATE;
 int DEAD_TIME = 9 * FRAME_RATE;
 int deadWait = 0;
 int SPRITE_SIZE;
+boolean constrastEleve = false; 
 
 Renderer renderer = new Renderer();
 boolean typeName = true;
@@ -49,7 +51,8 @@ void startGame() {
 }
 
 void draw() {
-  background(255);
+  renderer.initColors();
+  renderer.drawBackground();
 
   applyGameLogic();
   disconnectPlayers();
@@ -59,7 +62,7 @@ void draw() {
   renderer.drawBombs();
   renderer.drawMessage();
   renderer.drawScore();
-  renderer.drawChat();
+  renderer.drawChat(); 
 }
 
 void applyGameLogic() {
@@ -184,6 +187,10 @@ boolean isFree(int x, int y, int[][] collisionsMap) {
 }
 
 void keyPressed() {
+	if (keyCode == CONTROL) {
+		constrastEleve = !constrastEleve;		
+	}
+  
   if (typeName) {
     if (keyCode == ENTER && inputName .length() > 0) {
       message = "";
