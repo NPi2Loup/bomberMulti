@@ -17,36 +17,21 @@ var enableCORS = function(req, res, next) {
 	if(res.header) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, *');
-
-        // intercept OPTIONS method
-    if ('OPTIONS' == req.method) {
-        res.send(200);
-    } else {
-        next();
-    };
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, *');		
   }
+  next();
 };
 
 // Ws stats
 var getStats = function(req, res, next) {
-		var pathname = url.parse(req.url).pathname;
-		if(pathname == 'usageStats') {
-			  // intercept OPTIONS method
-    if ('OPTIONS' == req.method) {
-        res.writeHead(200, {"Content-Type": "application/json"});
-   		 	res.write(JSON.stringify(connectStats, null, '\t'));
-    		res.end();
-    } else {
-        next();
-    };
-  }
+		res.writeHead(200, {"Content-Type": "application/json"});
+   	res.write(JSON.stringify(connectStats, null, '\t'));
+    res.end();
 };
-
 
 // enable CORS!
 app.use(enableCORS);
-app.use(getStats);
+app.use('/usageStats', getStats);
 app.use(serveStatic(__dirname))
 
 // Socket io ecoute maintenant notre application !
