@@ -5,7 +5,7 @@
 <script src="processing-1.4.8.js"></script>
 <script src="socket.io.js" type="text/javascript"> </script>
 		<script type="text/javascript">
-			var socket = io.connect('http://npiedeloup1:8080');
+			var socket = io.connect();
             socket.on('server2Client', function (data) {
             		 processingInstance = Processing.getInstanceById('sketch').receiveEvent(data);
 				    });
