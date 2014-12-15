@@ -5,13 +5,25 @@
 <script src="processing-1.4.8.js"></script>
 <script src="socket.io.js" type="text/javascript"> </script>
 		<script type="text/javascript">
-			var socket = io.connect();
-            socket.on('server2Client', function (data) {
-            		 processingInstance = Processing.getInstanceById('sketch').receiveEvent(data);
-				    });
+			var server = getParameterByName('server');
+			var socket;
+			if(server) {
+				socket = io.connect(server);
+			}	else {
+				socket = io.connect();
+			}
+      socket.on('server2Client', function (data) {
+      	processingInstance = Processing.getInstanceById('sketch').receiveEvent(data);
+			});
 			function pushEvent(data){
 				socket.emit('client2Server', data);
 			}
+			function getParameterByName(name) {
+		    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+		    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		        results = regex.exec(location.search);
+		    return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
+		}
 		</script>
 	</head> 
 

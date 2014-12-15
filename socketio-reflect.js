@@ -12,8 +12,6 @@ var app = connect()
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
-app.use(serveStatic(__dirname))
-
 // Enables CORS
 var enableCORS = function(req, res, next) {
 	if(res.header) {
@@ -30,8 +28,26 @@ var enableCORS = function(req, res, next) {
   }
 };
 
+// Ws stats
+var getStats = function(req, res, next) {
+		var pathname = url.parse(req.url).pathname;
+		if(pathname == 'usageStats') {
+			  // intercept OPTIONS method
+    if ('OPTIONS' == req.method) {
+        res.writeHead(200, {"Content-Type": "application/json"});
+   		 	res.write(JSON.stringify(connectStats, null, '\t'));
+    		res.end();
+    } else {
+        next();
+    };
+  }
+};
+
+
 // enable CORS!
 app.use(enableCORS);
+app.use(getStats);
+app.use(serveStatic(__dirname))
 
 // Socket io ecoute maintenant notre application !
 var io = require('socket.io');
