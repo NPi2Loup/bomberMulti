@@ -75,8 +75,8 @@ io.sockets.on('connection', function (socket) {
 });
 
 // Notre application ecoute sur le port 8080
-server.listen(8080);
-console.log(dateFormat (new Date (), "%Y-%m-%d %H:%M:%S ", false)+' Server started. Listen on 8080');
+server.listen(process.env.PORT || 8080);
+console.log(dateFormat (new Date (), "%Y-%m-%d %H:%M:%S ", false)+' Server started. Listen on '+(process.env.PORT || 8080));
 
 function receiveEvent(socket, event) {
   var ipStats = getConnectStats(socket);
