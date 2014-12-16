@@ -11,12 +11,15 @@ String EVENT_CHAT = "CHAT";
 
 int FRAME_RATE = 25;
 int BOMBE_TIME = 3 * FRAME_RATE;
+int BOMBE_TIME_RND = 2 * FRAME_RATE;
+boolean DISPLAY_BOMBE_COUNTER = true;
+
 int MAP_SIZE = 19;
 int EXPLODE_SIZE = 9;
 int EXPLODE_TIME = round(0.3 * FRAME_RATE);
 int DISCONNECT_TIMEOUT = 60 * FRAME_RATE;
 
-int DEAD_TIME = 9 * FRAME_RATE;
+int DEAD_TIME = 5 * FRAME_RATE;
 int deadWait = 0;
 int SPRITE_SIZE;
 boolean constrastEleve = false; 
@@ -120,15 +123,14 @@ void explodePlayersAndBombs(Bomb bomb) {
 void explodeAPlayerAndBombs(Player player, Bomb bomb, boolean isMePlayer) {
   if (player.alive && isInRange(player.x, player.y, bomb.x, bomb.y, bomb.explodeSize)) {
     player.alive = false;
+    //player.killBy = bomb.playerId; //on garde le killBy pour ne compter le score qu'une fois.
     if (isMePlayer) {
       deadWait = DEAD_TIME;
-      pushPlayerInfo(mePlayer);
+      mePlayer.killBy = bomb.playerId; // killBy permet le score
+      scored(bomb.playerId, player);
+      pushPlayerInfo(mePlayer);      
     }
-    if(bomb.playerId == mePlayer.id) {
-      mePlayer.score += isMePlayer?-1:1;
-      pushPlayerInfo(mePlayer);   
-    } 
-    //player.killBy = bomb.playerId; //on garde le killBy pour ne compter le score qu'une fois.
+    //scored(bomb.playerId, player);
   }
   for (Bomb otherBomb : player.bombs.values ()) {
     if (!otherBomb.explode && isInRange(otherBomb.x, otherBomb.y, bomb.x, bomb.y, bomb.explodeSize)) {
@@ -142,6 +144,8 @@ boolean isInRange(int x, int y, int bombX, int bombY, int size) {
   return (x%2==0 && x == bombX && abs(y - bombY) <= size)
     || (y%2==0 && y == bombY && abs(x - bombX) <= size);
 }
+
+
 
 void disconnectPlayers() {
   boolean isDisco = false;
@@ -255,33 +259,27 @@ void keyPressed() {
         bomb.explodeSize = mePlayer.explodeSize;
         bomb.x = mePlayer.x;
         bomb.y = mePlayer.y;
-        bomb.timeLeft = BOMBE_TIME;
+        bomb.timeLeft = floor(BOMBE_TIME + (random(BOMBE_TIME_RND)-BOMBE_TIME_RND/2));
         mePlayer.bombs.put(bomb.id, bomb);
         pushBombInfo(bomb);
-      } /*else if (keyCode == ENTER ) {
-       Player other = new Player();
-       do { 
-       other.x = floor(random(MAP_SIZE));
-       other.y = floor(random(MAP_SIZE));
-       } 
-       while (other.x%2 == 1 && other.y%2 == 1);
-       other.alive = true;
-       other.bombX = mePlayer.x;
-       other.bombY = mePlayer.y;
-       other.bombT = BOMBE_TIME;
-       other.bombExplodT = -1;
-       
-       otherPlayers.put(other.id, other);
-       }*/
+      }
     }
+  }
+}
+
+void scored(int killerId, Player dead) {
+  if(killerId == mePlayer.id) {
+    dead.killBy = killerId;
+    mePlayer.score += dead.id==mePlayer.id?-1:1;
+    pushPlayerInfo(mePlayer);   
   }
 }
 
 //********* Events Handler ***************************
 void pushPlayerInfo(Player player) {
   String[] event = {
-    //id, name, alive, x, y, score, direction
-    EVENT_PLAYER_INFO, str(player.id), player.name, str(player.alive), str(player.x), str(player.y), str(player.score), str(player.direction)
+    //id, name, alive, x, y, score, direction, killBy
+    EVENT_PLAYER_INFO, str(player.id), player.name, str(player.alive), str(player.x), str(player.y), str(player.score), str(player.direction), str(player.killBy)
     };
     pushEvent(event);
 }
@@ -310,8 +308,8 @@ void receiveEvent(String[] event) {
   if (eventType == EVENT_GAME_INFO) {
     //start, regles, ...
   } else if (eventType == EVENT_PLAYER_INFO) {
-    //id, name, alive, x, y, score, direction
-    receivePlayerInfo(int(event[1]), event[2], boolean(event[3]), int(event[4]), int(event[5]), int(event[6]), int(event[7]));
+    //id, name, alive, x, y, score, direction, killBy
+    receivePlayerInfo(int(event[1]), event[2], boolean(event[3]), int(event[4]), int(event[5]), int(event[6]), int(event[7]), int(event[8]));
   } else if (eventType == EVENT_BOMB) {
     //id, playerId, explodeSize, x, y, timeLeft, explode
     receiveBombInfo(int(event[1]), int(event[2]), int(event[3]), int(event[4]), int(event[5]), int(event[6]), boolean(event[7]));
@@ -328,7 +326,7 @@ void receiveChat(String playerName, String message) {
   }
 }
 
-void receivePlayerInfo(int id, String name, boolean alive, int x, int y, int score, int direction) {
+void receivePlayerInfo(int id, String name, boolean alive, int x, int y, int score, int direction, int killBy) {
   Player other = otherPlayers.get(id);
   if (other == null) {
     other = new Player();
@@ -336,9 +334,13 @@ void receivePlayerInfo(int id, String name, boolean alive, int x, int y, int sco
     otherPlayers.put(other.id, other);
   }
   other.name = name;
-  if(!other.alive && alive) {
-      other.alive = alive;//on ne prend en compte que les resurect, les mort sont resolue par gameLogc pour compter les scores
-  } 
+  if(!alive && other.killBy == -1) {
+     other.killBy = killBy;
+     scored(killBy, other);
+  } else if(!other.alive) { //resurect dead->live
+    other.killBy = -1;
+  }
+  other.alive = alive;
   other.x = x;
   other.y = y;
   other.score = score;
@@ -384,6 +386,7 @@ class Player {
   int y = -1; 
   int score = 0;  
   int disconnectIn = DISCONNECT_TIMEOUT;
+  int killBy = -1;  
   HashMap<Integer, Bomb> bombs = new HashMap<Integer, Bomb>();
 }
 

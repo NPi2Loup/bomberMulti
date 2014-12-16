@@ -240,9 +240,11 @@ class Renderer {
     SPRITE_SIZE*0.9-(12f/FRAME_RATE)*timedCoef, 
     SPRITE_SIZE*0.9-(12f/FRAME_RATE)*timedCoef);
 
-    fill(textBombColor);
-    textSize(18);
-    text(floor(bomb.timeLeft/FRAME_RATE)+1, centerX, centerY); //affiche le decompte
+    if(DISPLAY_BOMBE_COUNTER) {
+      fill(textBombColor);
+      textSize(18);
+      text(floor(bomb.timeLeft/FRAME_RATE)+1, centerX, centerY); //affiche le decompte
+    }
   }
 
   void drawAExplosion(Bomb bomb) {

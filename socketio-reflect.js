@@ -12,6 +12,7 @@ var app = connect()
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
+
 // Enables CORS
 var enableCORS = function(req, res, next) {
 	if(res.header) {
@@ -32,7 +33,7 @@ var getStats = function(req, res, next) {
 // enable CORS!
 app.use(enableCORS);
 app.use('/usageStats', getStats);
-app.use(serveStatic(__dirname))
+app.use(serveStatic(__dirname));
 
 // Socket io ecoute maintenant notre application !
 var io = require('socket.io');
