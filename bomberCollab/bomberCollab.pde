@@ -1,8 +1,11 @@
-//Changes v0.5 : 
+//Changes : 
 // - gestion d'un timeout/disconnect pour les joueurs offline : Ok
 // - gestion des scores : Ok
 // - chat : Ok
 // - ConstractElevee : C
+// - Déplacements Souris simple, bombes = clic
+// - Liste des touches
+// - IA
 
 String EVENT_GAME_INFO = "GAME";
 String EVENT_PLAYER_INFO = "PLAYER";
@@ -10,8 +13,8 @@ String EVENT_BOMB = "BOMB";
 String EVENT_CHAT = "CHAT";
 
 int FRAME_RATE = 25;
-int BOMBE_TIME = 3 * FRAME_RATE;
-int BOMBE_TIME_RND = 2 * FRAME_RATE;
+int BOMBE_TIME = 5 * FRAME_RATE;
+int BOMBE_TIME_RND = 0 * FRAME_RATE;
 boolean DISPLAY_BOMBE_COUNTER = true;
 
 int MAP_SIZE = 19;
@@ -19,7 +22,7 @@ int EXPLODE_SIZE = 9;
 int EXPLODE_TIME = round(0.3 * FRAME_RATE);
 int DISCONNECT_TIMEOUT = 60 * FRAME_RATE;
 
-int DEAD_TIME = 5 * FRAME_RATE;
+int DEAD_TIME = 2 * FRAME_RATE;
 int deadWait = 0;
 int SPRITE_SIZE;
 boolean constrastEleve = false; 
@@ -32,15 +35,39 @@ boolean typeChat = false;
 String inputChat = "";
 ArrayList<String> chats = new ArrayList<String>();
 
+int selfAction = -1; // action a effectuer
+int lastAction; //dernière action effectuée
+
 Player mePlayer = new Player();
 HashMap<Integer, Player> otherPlayers = new HashMap<Integer, Player>();
 String message = "Hello to BomberCollab.\n\nUse arrows to move,\nENTER to drop your bomb.\nType your name : ";
+
+int speedMax = round(0.05 * FRAME_RATE); //vitesse de déplacement max : 50ms
+int speedMin = round(0.8 * FRAME_RATE); //vitesse de déplacement min : 800ms
+int currentSpeed = speedMax; //vari en fonction de l'ecart de la souris pas rapport au centre de la zone
+int deadZoneX; //centre de la zone 
+int deadZoneY; //centre de la zone 
+float bombZoneSize = 0.2; //coef taille zone bombe (clic: pose une bombe)
+float deadZoneSize = 0.25; //coef taille zone morte (aucun effet)
+//float manualZoneSize = 0.5; //coef taille zone manuelle (clic: deplacement)
+float manualZoneSize = deadZoneSize; //deadZoneSize=desactivée
+float autoZoneSize = 1; //coef taille zone auto (mouseOver: déplacement, speed fonction de la distance)
+
+int speedWait = -1; // décompte d'attente
+
 
 void setup() {
   size(1000, 800);
   background(255);  
   frameRate(FRAME_RATE); 
   SPRITE_SIZE = (height-1)/MAP_SIZE;
+  int maxZoneSize = round((width-height)/2);
+  deadZoneX = width-maxZoneSize;
+  deadZoneY = height-maxZoneSize;
+  bombZoneSize = round(maxZoneSize*bombZoneSize);
+  deadZoneSize = round(maxZoneSize*deadZoneSize);
+  manualZoneSize = round(maxZoneSize*manualZoneSize);
+  autoZoneSize = round(maxZoneSize*autoZoneSize);
 }
 
 void startGame() {
@@ -57,6 +84,10 @@ void draw() {
   renderer.initColors();
   renderer.drawBackground();
 
+  renderer.drawMovePanel();
+  
+  detectMouse();
+  applyMoves();
   applyGameLogic();
   disconnectPlayers();
 
@@ -65,14 +96,61 @@ void draw() {
   renderer.drawBombs();
   renderer.drawMessage();
   renderer.drawScore();
-  renderer.drawChat(); 
+  renderer.drawChat();
 }
+
+void applyMoves() {
+  if(speedWait>0) {
+    speedWait--;
+  }  
+  if (mePlayer.alive && selfAction != -1 && speedWait<=0) {
+    speedWait = currentSpeed;
+    int[][] collisionsMap = getCollisionsMap();
+
+    if (selfAction == RIGHT) {
+      mePlayer.direction = 0;
+      if (isFree(mePlayer.x+1, mePlayer.y, collisionsMap)) {
+        mePlayer.x++;
+      }
+      pushPlayerInfo(mePlayer);
+    } else if (selfAction == DOWN) {
+      mePlayer.direction = 1;
+      if (isFree(mePlayer.x, mePlayer.y+1, collisionsMap)) {
+        mePlayer.y++;
+      }
+      pushPlayerInfo(mePlayer);
+    } else if (selfAction == LEFT) {
+      mePlayer.direction = 2;
+      if (isFree(mePlayer.x-1, mePlayer.y, collisionsMap)) {
+        mePlayer.x--;
+      }
+      pushPlayerInfo(mePlayer);
+    } else if (selfAction == UP) {
+      mePlayer.direction = 3;
+      if (isFree(mePlayer.x, mePlayer.y-1, collisionsMap)) {
+        mePlayer.y--;
+      }
+      pushPlayerInfo(mePlayer);
+    } else if (selfAction == ENTER && mePlayer.bombs.size() < mePlayer.maxBomb ) {
+      Bomb bomb = new Bomb();
+      bomb.playerId = mePlayer.id;
+      bomb.explodeSize = mePlayer.explodeSize;
+      bomb.x = mePlayer.x;
+      bomb.y = mePlayer.y;
+      bomb.timeLeft = floor(BOMBE_TIME + (random(BOMBE_TIME_RND)-BOMBE_TIME_RND/2));
+      mePlayer.bombs.put(bomb.id, bomb);
+      pushBombInfo(bomb);
+    }
+    selfAction = -1;
+  }
+}
+
 
 void applyGameLogic() {
   //dead message
   if (!mePlayer.alive && !typeName) {
     message = "Start in "+floor(deadWait/FRAME_RATE)+"s";
-    if (deadWait-- <= 0) {
+    if (!typeChat && deadWait-- <= 0) {
       startGame();
       message = "";
     }
@@ -99,9 +177,9 @@ void applyBombsLogic(Bomb bomb, boolean isMePlayer) {
     if (isMePlayer) {
       pushBombInfo(bomb);
     }
-  } else if(bomb.timeLeft > 0 && bomb.explode) {
-     explodePlayersAndBombs(bomb);
-     bomb.timeLeft--;
+  } else if (bomb.timeLeft > 0 && bomb.explode) {
+    explodePlayersAndBombs(bomb);
+    bomb.timeLeft--;
   } else if (bomb.timeLeft == 0 && bomb.explode) { //fin explosion
     bomb.timeLeft = -1;
     if (isMePlayer && mePlayer.id == bomb.playerId) {
@@ -110,7 +188,7 @@ void applyBombsLogic(Bomb bomb, boolean isMePlayer) {
       Player other = otherPlayers.get(bomb.playerId);
       other.bombs.remove(bomb.id);
     }
-  } 
+  }
 }
 
 void explodePlayersAndBombs(Bomb bomb) {
@@ -128,7 +206,7 @@ void explodeAPlayerAndBombs(Player player, Bomb bomb, boolean isMePlayer) {
       deadWait = DEAD_TIME;
       mePlayer.killBy = bomb.playerId; // killBy permet le score
       scored(bomb.playerId, player);
-      pushPlayerInfo(mePlayer);      
+      pushPlayerInfo(mePlayer);
     }
     //scored(bomb.playerId, player);
   }
@@ -139,26 +217,31 @@ void explodeAPlayerAndBombs(Player player, Bomb bomb, boolean isMePlayer) {
   }
 }
 
-
 boolean isInRange(int x, int y, int bombX, int bombY, int size) {
   return (x%2==0 && x == bombX && abs(y - bombY) <= size)
     || (y%2==0 && y == bombY && abs(x - bombX) <= size);
 }
 
-
+void scored(int killerId, Player dead) {
+  if (killerId == mePlayer.id) {
+    dead.killBy = killerId;
+    mePlayer.score += dead.id==mePlayer.id?-1:1;
+    pushPlayerInfo(mePlayer);
+  }
+}
 
 void disconnectPlayers() {
   boolean isDisco = false;
   for (Player player : otherPlayers.values ()) {
-    if(player.disconnectIn > 0) {
-      player.disconnectIn--; 
+    if (player.disconnectIn > 0) {
+      player.disconnectIn--;
     } else {
       isDisco = true;
     }
   }
-  if(isDisco) {
-    for (Player player : new ArrayList<Player>(otherPlayers.values ())) {
-      if(player.disconnectIn == 0) {
+  if (isDisco) {
+    for (Player player : new ArrayList<Player> (otherPlayers.values ())) {
+      if (player.disconnectIn == 0) {
         otherPlayers.remove(player.id);
       }
     }
@@ -191,10 +274,9 @@ boolean isFree(int x, int y, int[][] collisionsMap) {
 }
 
 void keyPressed() {
-	if (keyCode == CONTROL) {
-		constrastEleve = !constrastEleve;		
-	}
-  
+  if (keyCode == CONTROL) {
+    constrastEleve = !constrastEleve;
+  }
   if (typeName) {
     if (keyCode == ENTER && inputName .length() > 0) {
       message = "";
@@ -212,68 +294,79 @@ void keyPressed() {
     if (keyCode == ENTER && inputName .length() > 0) {
       message = "";
       typeChat = false;    
-      pushChat();  
+      pushChat();
     } else if (inputChat.length() > 0 && (keyCode == BACKSPACE || keyCode == DELETE)) {
       inputChat = inputChat.substring(0, inputChat.length()-1);
     } else if (key >= ' ' && key <= '~') {
       inputChat = inputChat + str(key);
     }
+  } else if (key == 't' || key == 'T') {
+    message = "\nCHAT MODE\npress ENTER to send";
+    typeChat = true;
+    inputChat = "";
   } else {
-    int[][] collisionsMap = getCollisionsMap();
     //println(keyCode +" ("+RIGHT+","+DOWN+","+LEFT+","+UP+")");
     //println("dir:"+mePlayer.direction +" mePlayer.y%2:"+mePlayer.y%2+", mePlayer.x%2:"+mePlayer.x%2);
-
-    if (mePlayer.alive) {
-      //pas de gestion de collision hors blocs centraux
-      if (key == 't' || key == 'T') {
-        message = "\nCHAT MODE\npress ENTER to send";
-        typeChat = true;
-        inputChat = "";
-      } else if (keyCode == RIGHT) {
-        mePlayer.direction = 0;
-        if (isFree(mePlayer.x+1, mePlayer.y, collisionsMap)) {
-          mePlayer.x++;
-        }
-        pushPlayerInfo(mePlayer);
-      } else if (keyCode == DOWN) {
-        mePlayer.direction = 1;
-        if (isFree(mePlayer.x, mePlayer.y+1, collisionsMap)) {
-          mePlayer.y++;
-        }
-        pushPlayerInfo(mePlayer);
-      } else if (keyCode == LEFT) {
-        mePlayer.direction = 2;
-        if (isFree(mePlayer.x-1, mePlayer.y, collisionsMap)) {
-          mePlayer.x--;
-        }
-        pushPlayerInfo(mePlayer);
-      } else if (keyCode == UP) {
-        mePlayer.direction = 3;
-        if (isFree(mePlayer.x, mePlayer.y-1, collisionsMap)) {
-          mePlayer.y--;
-        }
-        pushPlayerInfo(mePlayer);
-      } else if (keyCode == ENTER && mePlayer.bombs.size() < mePlayer.maxBomb ) {
-        Bomb bomb = new Bomb();
-        bomb.playerId = mePlayer.id;
-        bomb.explodeSize = mePlayer.explodeSize;
-        bomb.x = mePlayer.x;
-        bomb.y = mePlayer.y;
-        bomb.timeLeft = floor(BOMBE_TIME + (random(BOMBE_TIME_RND)-BOMBE_TIME_RND/2));
-        mePlayer.bombs.put(bomb.id, bomb);
-        pushBombInfo(bomb);
-      }
+    if (keyCode == RIGHT || keyCode == DOWN || keyCode == LEFT || keyCode == UP || keyCode == ENTER) {
+      selfAction = keyCode;
+      currentSpeed = speedMax;
     }
   }
 }
 
-void scored(int killerId, Player dead) {
-  if(killerId == mePlayer.id) {
-    dead.killBy = killerId;
-    mePlayer.score += dead.id==mePlayer.id?-1:1;
-    pushPlayerInfo(mePlayer);   
+void detectMouse() {
+  if (!typeName && !typeChat && selfAction != ENTER) {
+    int nextAction = getInZoneDir(manualZoneSize, autoZoneSize);
+    if (nextAction != -1) { //si dans la zone
+      int dist;
+      if (nextAction == LEFT || nextAction == RIGHT) {
+        dist = round(abs(mouseX-deadZoneX) - manualZoneSize);
+      } else {
+        dist = round(abs(mouseY-deadZoneY) - manualZoneSize);
+      }
+      currentSpeed = round(speedMin + (speedMax-speedMin) * dist/(autoZoneSize-manualZoneSize));
+      
+      //println("dist:"+dist+"/("+autoZoneSize+"-"+manualZoneSize+")="+dist/(autoZoneSize-manualZoneSize)+" : currentSpeed:"+currentSpeed);     
+    }
+     if(lastAction != nextAction) {
+        speedWait=0;
+      }
+      selfAction = nextAction;
+      lastAction = nextAction;
   }
 }
+
+void mouseClicked() {
+  if (!typeName && !typeChat) {
+    //int bombAction = getInZoneDir(0, bombZoneSize);
+    int manualAction = getInZoneDir(deadZoneSize, manualZoneSize);
+    if (manualAction != -1 && selfAction == -1) {
+      selfAction = manualAction;
+    } else if (getInZoneDir(bombZoneSize, deadZoneSize) == -1) { //pas dans la zone grise
+      selfAction = ENTER;
+    }
+    //println("manualAction:"+manualAction+", selfAction:"+selfAction);
+  }
+}
+
+int getInZoneDir(float sizeMin, float sizeMax) {
+  int dX = mouseX-deadZoneX;
+  int dY = mouseY-deadZoneY;
+  if ((abs(dX)>sizeMin || abs(dY)>sizeMin) && (abs(dX)<sizeMax && abs(dY)<sizeMax)) {
+    //println("("+dX+","+dY+") sizeMin:"+sizeMin+", sizeMax:"+sizeMax);
+    if (abs(dX)>abs(dY) && dX>0) {
+      return RIGHT;
+    } else if (abs(dX)>abs(dY) && dX<0) {
+      return LEFT;
+    } else if (abs(dY)>abs(dX) && dY>0) {
+      return DOWN;
+    } else if (abs(dY)>abs(dX) && dY<0) {
+      return UP;
+    }
+  }
+  return -1;
+} 
+
 
 //********* Events Handler ***************************
 void pushPlayerInfo(Player player) {
@@ -294,12 +387,12 @@ void pushBombInfo(Bomb bomb) {
 
 void pushChat() {
   String[] event = {
-      //playerId, message
-      EVENT_CHAT, mePlayer.name, inputChat
-    };
-    inputChat = "";
-    pushEvent(event);
-    receiveEvent(event);
+    //playerId, message
+    EVENT_CHAT, mePlayer.name, inputChat
+  };
+  inputChat = "";
+  pushEvent(event);
+  receiveEvent(event);
 }
 
 
@@ -320,8 +413,8 @@ void receiveEvent(String[] event) {
 }
 
 void receiveChat(String playerName, String message) {
-  chats.add(0,"["+playerName+"] "+message);
-  if(chats.size() > 30) {
+  chats.add(0, "["+playerName+"] "+message);
+  if (chats.size() > 30) {
     chats.remove(chats.size()-1);
   }
 }
@@ -334,10 +427,10 @@ void receivePlayerInfo(int id, String name, boolean alive, int x, int y, int sco
     otherPlayers.put(other.id, other);
   }
   other.name = name;
-  if(!alive && other.killBy == -1) {
-     other.killBy = killBy;
-     scored(killBy, other);
-  } else if(!other.alive) { //resurect dead->live
+  if (!alive && other.killBy == -1) {
+    other.killBy = killBy;
+    scored(killBy, other);
+  } else if (!other.alive) { //resurect dead->live
     other.killBy = -1;
   }
   other.alive = alive;
@@ -399,7 +492,4 @@ class Bomb {
   int timeLeft = -1;
   boolean explode = false;
 }
-
-
-
 

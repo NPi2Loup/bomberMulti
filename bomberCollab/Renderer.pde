@@ -3,91 +3,91 @@ class Renderer {
   //PImage fullSpritesMap = loadImage("spritesMap.jpg");
 
   /*PImage bombe1 = loadImage("bombe1.gif");
-  PImage bombe2 = loadImage("bombe2.gif");
-  PImage bombe3 = loadImage("bombe3.gif");
+   PImage bombe2 = loadImage("bombe2.gif");
+   PImage bombe3 = loadImage("bombe3.gif");
+   
+   PImage bombermanN = loadImage("bombermanN.gif");
+   PImage bombermanS = loadImage("bombermanS.gif");
+   PImage bombermanE = loadImage("bombermanE.gif");
+   PImage bombermanW = loadImage("bombermanW.gif");
+   
+   PImage exploC = loadImage("exploC.gif");
+   PImage exploN = loadImage("exploN.gif");
+   PImage exploS = loadImage("exploS.gif");
+   PImage exploE = loadImage("exploE.gif");
+   PImage exploW = loadImage("exploW.gif");
+   PImage exploEndN = loadImage("exploEndN.gif");
+   PImage exploEndS = loadImage("exploEndS.gif");
+   PImage exploEndE = loadImage("exploEndE.gif");
+   PImage exploEndW = loadImage("exploEndW.gif");*/
 
-  PImage bombermanN = loadImage("bombermanN.gif");
-  PImage bombermanS = loadImage("bombermanS.gif");
-  PImage bombermanE = loadImage("bombermanE.gif");
-  PImage bombermanW = loadImage("bombermanW.gif");
+  color  backgroundColor = color(255);
+  color  mapBorderColor = color(20);
+  color  squareColor = color(170);
+  color  squareLightColor = color(140);
+  color  squareDarkColor = color(110);
+  color  messageColor = color(20);
+  color  titleColor = color(50);
+  color  meTextColor = color(50, 50, 150);
+  color  otherTextColor = color(150, 20, 20);
+  color  meColor = color(50, 50, 220);
+  color  otherColor = color(220, 20, 20);
+  color  disconnectColor = color(100);
+  color  borderPlayerColor = color(80);
+  color  deadPlayerColor = color(40);
+  color  borderBombColor = color(80);
+  color  innerBombColor = color(20);
+  color  textBombColor = color(200);
+  color  borderFlamsColor = color(250, 200, 20);
+  color  innerFlamsColor = color(250, 250, 20);
 
-  PImage exploC = loadImage("exploC.gif");
-  PImage exploN = loadImage("exploN.gif");
-  PImage exploS = loadImage("exploS.gif");
-  PImage exploE = loadImage("exploE.gif");
-  PImage exploW = loadImage("exploW.gif");
-  PImage exploEndN = loadImage("exploEndN.gif");
-  PImage exploEndS = loadImage("exploEndS.gif");
-  PImage exploEndE = loadImage("exploEndE.gif");
-  PImage exploEndW = loadImage("exploEndW.gif");*/
-	
-	color  backgroundColor = color(255);
-	color  mapBorderColor = color(20);
-	color  squareColor = color(170);
-	color  squareLightColor = color(140);
-	color  squareDarkColor = color(110);
-	color  messageColor = color(20);
-	color  titleColor = color(50);
-	color  meTextColor = color(50, 50, 150);
-	color  otherTextColor = color(150, 20, 20);
-	color  meColor = color(50, 50, 220);
-	color  otherColor = color(220, 20, 20);
-	color  disconnectColor = color(100);
-	color  borderPlayerColor = color(80);
-	color  deadPlayerColor = color(40);
-	color  borderBombColor = color(80);
-	color  innerBombColor = color(20);
-	color  textBombColor = color(200);
-	color  borderFlamsColor = color(250, 200, 20);
-	color  innerFlamsColor = color(250, 250, 20);
-	
-	void initColors() {
-		if(constrastEleve) {
-			backgroundColor = color(20);
-			mapBorderColor = color(200);
-			squareColor = color(100);
-			squareLightColor = color(140);
-			squareDarkColor = color(170);
-			messageColor = color(200);
-			titleColor = color(150);
-			meTextColor = color(150, 150, 220);
-			otherTextColor = color(220, 150, 150);
-			meColor = color(150, 150, 220);
-			otherColor = color(220, 150, 150);
-			disconnectColor = color(100);
-			borderPlayerColor = color(80);
-			deadPlayerColor = color(20);
-			borderBombColor = color(180);
-			innerBombColor = color(20);
-			textBombColor = color(200);
-			borderFlamsColor = color(150, 100, 20);
-			innerFlamsColor = color(150, 150, 20);
-		} else {
-			backgroundColor = color(255);
-			mapBorderColor = color(20);
-			squareColor = color(170);
-			squareLightColor = color(140);
-			squareDarkColor = color(110);
-			messageColor = color(20);
-			titleColor = color(50);
-			meTextColor = color(50, 50, 150);
-			otherTextColor = color(150, 20, 20);
-			meColor = color(50, 50, 220);
-			otherColor = color(220, 20, 20);
-			disconnectColor = color(100);
-			borderPlayerColor = color(80);
-			deadPlayerColor = color(40);
-			borderBombColor = color(80);
-			innerBombColor = color(20);
-			textBombColor = color(200);
-			borderFlamsColor = color(250, 200, 20);
-			innerFlamsColor = color(250, 250, 20);
-		}
-	}
-	
-	void drawBackground() {
- 		background(backgroundColor);
- 	}
+  void initColors() {
+    if (constrastEleve) {
+      backgroundColor = color(20);
+      mapBorderColor = color(200);
+      squareColor = color(100);
+      squareLightColor = color(140);
+      squareDarkColor = color(170);
+      messageColor = color(200);
+      titleColor = color(150);
+      meTextColor = color(150, 150, 220);
+      otherTextColor = color(220, 150, 150);
+      meColor = color(150, 150, 220);
+      otherColor = color(220, 150, 150);
+      disconnectColor = color(100);
+      borderPlayerColor = color(80);
+      deadPlayerColor = color(20);
+      borderBombColor = color(180);
+      innerBombColor = color(20);
+      textBombColor = color(200);
+      borderFlamsColor = color(150, 100, 20);
+      innerFlamsColor = color(150, 150, 20);
+    } else {
+      backgroundColor = color(255);
+      mapBorderColor = color(20);
+      squareColor = color(170);
+      squareLightColor = color(140);
+      squareDarkColor = color(110);
+      messageColor = color(20);
+      titleColor = color(50);
+      meTextColor = color(50, 50, 150);
+      otherTextColor = color(150, 20, 20);
+      meColor = color(50, 50, 220);
+      otherColor = color(220, 20, 20);
+      disconnectColor = color(100);
+      borderPlayerColor = color(80);
+      deadPlayerColor = color(40);
+      borderBombColor = color(80);
+      innerBombColor = color(20);
+      textBombColor = color(200);
+      borderFlamsColor = color(250, 200, 20);
+      innerFlamsColor = color(250, 250, 20);
+    }
+  }
+
+  void drawBackground() {
+    background(backgroundColor);
+  }
 
   void drawMap() {
     noFill();
@@ -127,8 +127,9 @@ class Renderer {
     textLeading(2*SPRITE_SIZE);
     text(message, SPRITE_SIZE*MAP_SIZE/2, 4*SPRITE_SIZE+SPRITE_SIZE/2);
   }
-  
+
   void drawScore() {
+    strokeWeight(2);
     int i = 0;
     textAlign(LEFT, TOP);
     textSize(12);
@@ -136,14 +137,14 @@ class Renderer {
     stroke(titleColor);
     text("Scores", height+10, 20-15);
     line(height+10, 20, width-10, 20);
-    
+
     fill(meTextColor);
     text(mePlayer.name, height+10, 25 + i*15);
     text(mePlayer.score, height+120, 25 + i*15);
     i++;
     for (Player other : otherPlayers.values ()) {
       fill(otherTextColor);
-      if(other.name!=null) {
+      if (other.name!=null) {
         text(other.name, height+10, 25 + i*15);
       } else {
         text(other.id, height+10, 25 + i*15);
@@ -153,8 +154,9 @@ class Renderer {
     }
     textAlign(CENTER, CENTER);
   }
-  
-   void drawChat() {
+
+  void drawChat() {
+    strokeWeight(2);
     int i = 0;
     textAlign(LEFT, TOP);
     textSize(12);
@@ -162,7 +164,7 @@ class Renderer {
     stroke(titleColor);
     text("Chat      <<press T>>", height+10, 245-15);
     line(height+10, 245, width-10, 245);
-   
+
     fill(meTextColor);
     text("["+mePlayer.name+"] "+inputChat, height+10, 250 + i*15);
     i++;
@@ -174,10 +176,22 @@ class Renderer {
     textAlign(CENTER, CENTER);
   }
 
+  void drawMovePanel() {    
+    noStroke();
+    fill(220, 220, 0);
+    rect(deadZoneX-autoZoneSize, deadZoneY-autoZoneSize, autoZoneSize*2, autoZoneSize*2);
+    fill(120, 120, 20);
+    rect(deadZoneX-manualZoneSize, deadZoneY-manualZoneSize, manualZoneSize*2, manualZoneSize*2);
+    fill(200);
+    rect(deadZoneX-deadZoneSize, deadZoneY-deadZoneSize, deadZoneSize*2, deadZoneSize*2);
+    fill(20);
+    rect(deadZoneX-bombZoneSize, deadZoneY-bombZoneSize, bombZoneSize*2, bombZoneSize*2);
+  }
+
   void drawPlayers() {  
     for (Player other : otherPlayers.values ()) {
       fill(otherColor);
-      if(other.disconnectIn<30*FRAME_RATE) {
+      if (other.disconnectIn<30*FRAME_RATE) {
         fill(disconnectColor);
       }
       drawAPlayer(other);
@@ -240,7 +254,7 @@ class Renderer {
     SPRITE_SIZE*0.9-(12f/FRAME_RATE)*timedCoef, 
     SPRITE_SIZE*0.9-(12f/FRAME_RATE)*timedCoef);
 
-    if(DISPLAY_BOMBE_COUNTER) {
+    if (DISPLAY_BOMBE_COUNTER) {
       fill(textBombColor);
       textSize(18);
       text(floor(bomb.timeLeft/FRAME_RATE)+1, centerX, centerY); //affiche le decompte
