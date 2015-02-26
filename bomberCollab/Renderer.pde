@@ -58,7 +58,7 @@ class Renderer {
       borderPlayerColor = color(80);
       deadPlayerColor = color(20);
       borderBombColor = color(180);
-      innerBombColor = color(20);
+      innerBombColor = color(80);
       textBombColor = color(200);
       borderFlamsColor = color(150, 100, 20);
       innerFlamsColor = color(150, 150, 20);
@@ -137,13 +137,12 @@ class Renderer {
     stroke(titleColor);
     text("Scores", height+10, 20-15);
     line(height+10, 20, width-10, 20);
-
-    fill(meTextColor);
-    text(mePlayer.name, height+10, 25 + i*15);
-    text(mePlayer.score, height+120, 25 + i*15);
-    i++;
-    for (Player other : otherPlayers.values ()) {
-      fill(otherTextColor);
+    for (Player other : gameState.allPlayers.values ()) {
+      if (other == mePlayer) {
+        fill(meTextColor);
+      } else {
+        fill(otherTextColor);
+      }
       if (other.name!=null) {
         text(other.name, height+10, 25 + i*15);
       } else {
@@ -189,12 +188,12 @@ class Renderer {
   }
 
   void drawPlayers() {  
-    for (Player other : otherPlayers.values ()) {
+    for (Player player : gameState.allPlayers.values ()) {
       fill(otherColor);
-      if (other.disconnectIn<30*FRAME_RATE) {
+      if (player.disconnectIn<30*FRAME_RATE) {
         fill(disconnectColor);
       }
-      drawAPlayer(other);
+      drawAPlayer(player);
     }
     fill(meColor);
     drawAPlayer(mePlayer);
@@ -223,20 +222,13 @@ class Renderer {
   }
 
   void drawBombs() {
-    for (Player other : otherPlayers.values ()) {
+    for (Player other : gameState.allPlayers.values ()) {
       for (Bomb bomb : other.bombs.values ()) {
         if (!bomb.explode) {
           drawABomb(bomb);
         } else {
           drawAExplosion(bomb);
         }
-      }
-    }
-    for (Bomb bomb : mePlayer.bombs.values ()) {
-      if (!bomb.explode) {
-        drawABomb(bomb);
-      } else {
-        drawAExplosion(bomb);
       }
     }
     noStroke();
