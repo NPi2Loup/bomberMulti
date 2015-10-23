@@ -69,7 +69,7 @@ void setup() {
   autoZoneSize = round(maxZoneSize*autoZoneSize);
   gameState.allPlayers.put(mePlayer.id, mePlayer);
   mePlayer.pushEvent = true; 
-  createCpuPlayer();
+  //createCpuPlayer();
 }
 
 
@@ -221,7 +221,7 @@ void keyPressed() {
     inputChat = "";
   } else if (key == 'c' || key == 'C') {
     noLoop();
-    //createCpuPlayer();
+    createCpuPlayer();
   } else {
     //println(keyCode +" ("+RIGHT+","+DOWN+","+LEFT+","+UP+")");
     //println("dir:"+mePlayer.direction +" mePlayer.y%2:"+mePlayer.y%2+", mePlayer.x%2:"+mePlayer.x%2);
