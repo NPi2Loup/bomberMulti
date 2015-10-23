@@ -6,7 +6,7 @@
   DOWN = 40; 
   UP = 38; 
   ENTER = 10;
-  MAX_DEEP = 4;
+  MAX_DEEP = 3;
   KEY_RANGE = 6;
   STATE_HISTORY = BOMBE_TIME/2;
   USE_WORKER = false;
@@ -22,8 +22,8 @@
   function startWorker(inputSpeed) {
 		if(USE_WORKER) {
 			myWorker = new Worker("cpuPlayerCalcWorker.js");
+			console.log('Worker started');
 		}
-		console.log('Worker started');
   }
   
   function computeBestMove(movedPlayer, allPlayers) {
