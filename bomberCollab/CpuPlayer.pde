@@ -11,7 +11,7 @@ class CpuPlayer {
 		cpuPlayer.name = "Cpu"+(++nbCpu)+ " nv"+round(FRAME_RATE / cpuSpeed)+".2";
 		cpuPlayer.pushEvent = true;
 		cpuPlayer.resurect();
-		startWorker(cpuSpeed);
+		//startWorker(cpuSpeed);
 	}
 
   void startCpuGame() {
